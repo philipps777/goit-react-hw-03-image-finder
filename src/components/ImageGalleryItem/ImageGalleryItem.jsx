@@ -1,3 +1,5 @@
+import { Li, Image } from './ImageGalleryItem.styled';
+
 export const ImageGalleryItem = ({
   id,
   webformatURL,
@@ -6,10 +8,10 @@ export const ImageGalleryItem = ({
   tags,
 }) => {
   return (
-    <li key={id}>
+    <Li key={id}>
       <div onClick={() => onImageClick(largeImageURL)}>
-        <img src={webformatURL} alt={tags} />
+        <Image src={webformatURL} alt={tags} />
       </div>
-    </li>
+    </Li>
   );
 };
