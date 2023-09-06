@@ -1,9 +1,10 @@
 import React from 'react';
 import { Puff } from 'react-loader-spinner';
+import { LoaderDiv } from './Loader.styled';
 
-const LoaderComponent = () => {
+export const Loader = () => {
   return (
-    <div className="loader">
+    <LoaderDiv className="loader">
       <Puff
         height="80"
         width="80"
@@ -14,8 +15,6 @@ const LoaderComponent = () => {
         wrapperClass=""
         visible={true}
       />
-    </div>
+    </LoaderDiv>
   );
 };
-
-export default LoaderComponent;

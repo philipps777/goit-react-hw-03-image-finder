@@ -1,9 +1,11 @@
-export const Modal = ({ currentImage, onClose }) => {
+import { ModalDiv, ImageModalDiv } from './Modal.styled';
+
+export const Modal = ({ largeImageURL, onOverlayClick }) => {
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal">
-        <img src={currentImage} alt="" />
-      </div>
-    </div>
+    <ModalDiv className="overlay" onClick={onOverlayClick}>
+      <ImageModalDiv className="modal">
+        <img src={largeImageURL} alt="" />
+      </ImageModalDiv>
+    </ModalDiv>
   );
 };

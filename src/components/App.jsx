@@ -1,17 +1,19 @@
 import { Component } from 'react';
-import { fetchData } from 'components/api';
+import { fetchData } from './api';
 import { SearchBar } from 'components/Searchbar/Searchbar';
-import { ImageGallery } from 'components/ImageGallery/ImageGallery'; // Предполагается, что у вас есть компонент ImageGallery
-import { Button } from 'components/Button/Button'; // Предполагается, что у вас есть компонент Button
-// Предполагается, что у вас есть компонент Loader
+import { ImageGallery } from 'components/ImageGallery/ImageGallery';
+import { Button } from 'components/Button/Button';
+import { toast } from 'react-toastify';
 import { Modal } from './Modal/Modal';
-import LoaderComponent from './Loader/Loader';
+import { Loader } from './Loader/Loader';
+import { Wrapper } from './App.styled';
 
 export class App extends Component {
   state = {
     query: '',
     page: 1,
     images: [],
+    totalHits: 0,
     loading: false,
     currentImage: null,
     isModalOpen: false,
@@ -19,31 +21,52 @@ export class App extends Component {
 
   componentDidMount() {
     this.fetchData();
+    document.addEventListener('keydown', this.handleKeyDown);
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.handleKeyDown);
+  }
+
+  async componentDidUpdate(prevProps, prevState) {
     if (
-      prevState.query !== this.state.query ||
-      prevState.page !== this.state.page
+      (prevState.query !== this.state.query ||
+        prevState.page !== this.state.page) &&
+      this.state.query.trim() !== ''
     ) {
-      this.fetchData();
+      this.setState({
+        loading: true,
+      });
+      try {
+        const images = await fetchData(this.state);
+        if (this.state.page === 1) {
+          this.setState({
+            totalHits: images.totalHits - 12,
+          });
+        }
+        this.setState(prevState => ({
+          images: [...prevState.images, ...images.hits],
+        }));
+      } catch (error) {
+        toast.error('Error! Something went wrong!');
+      } finally {
+        this.setState({
+          loading: false,
+        });
+      }
     }
   }
-
-  fetchPixabayData = async (query, page) => {
-    try {
-      const images = await fetchData(query, page);
-      return images;
-    } catch (error) {
-      throw error;
-    }
-  };
 
   fetchData = async () => {
     try {
-      this.setState({ loading: true });
       const { query, page } = this.state;
-      const images = await this.fetchPixabayData(query, page);
+      if (query.trim() === '') {
+        return;
+      }
+
+      this.setState({ loading: true });
+
+      const images = await fetchData(query, page);
 
       if (page === 1) {
         this.setState({ images });
@@ -54,6 +77,7 @@ export class App extends Component {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+      toast.error('Error! Something went wrong!');
     } finally {
       this.setState({ loading: false });
     }
@@ -67,8 +91,12 @@ export class App extends Component {
     });
   };
 
-  handleImageClick = imageUrl => {
-    this.setState({ currentImage: imageUrl, isModalOpen: true });
+  handleImageClick = largeImageURL => {
+    this.setState({ currentImage: largeImageURL, isModalOpen: true });
+  };
+
+  handleCloseModal = () => {
+    this.setState({ isModalOpen: false, currentImage: null });
   };
 
   handleLoadMore = () => {
@@ -77,23 +105,35 @@ export class App extends Component {
     }));
   };
 
-  closeModal = () => {
-    this.setState({ isModalOpen: false });
+  handleKeyDown = event => {
+    if (event.key === 'Escape' && this.state.isModalOpen) {
+      this.handleCloseModal();
+    }
+  };
+
+  handleOverlayClick = event => {
+    if (event.target === event.currentTarget && this.state.isModalOpen) {
+      this.handleCloseModal();
+    }
   };
 
   render() {
     const { images, loading, currentImage, isModalOpen } = this.state;
 
     return (
-      <div className="App">
+      <Wrapper className="App">
         <SearchBar onSubmit={this.handleSearch} />
         <ImageGallery images={images} onImageClick={this.handleImageClick} />
-        {loading && <LoaderComponent />}
+        {loading && <Loader />}
         {images.length > 0 && <Button onClick={this.handleLoadMore} />}
         {isModalOpen && (
-          <Modal imageUrl={currentImage} onClose={this.closeModal} />
+          <Modal
+            largeImageURL={currentImage}
+            onClose={this.handleCloseModal}
+            onOverlayClick={this.handleOverlayClick}
+          />
         )}
-      </div>
+      </Wrapper>
     );
   }
 }

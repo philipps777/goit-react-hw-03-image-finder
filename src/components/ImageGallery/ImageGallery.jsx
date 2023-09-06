@@ -11,7 +11,7 @@ export const ImageGallery = ({ images, onImageClick }) => {
           webformatURL={webformatURL}
           largeImageURL={largeImageURL}
           tags={tags}
-          onImageClick={onImageClick}
+          onImageClick={() => onImageClick(largeImageURL)}
         />
       ))}
     </Gallery>
