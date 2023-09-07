@@ -3,7 +3,7 @@ import { fetchData } from './api';
 import { SearchBar } from 'components/Searchbar/Searchbar';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
 import { Button } from 'components/Button/Button';
-import { toast } from 'react-toastify';
+import toast, { Toaster } from 'react-hot-toast';
 import { Modal } from './Modal/Modal';
 import { Loader } from './Loader/Loader';
 import { Wrapper } from './App.styled';
@@ -133,6 +133,7 @@ export class App extends Component {
             onOverlayClick={this.handleOverlayClick}
           />
         )}
+        <Toaster />
       </Wrapper>
     );
   }
