@@ -19,41 +19,12 @@ export class App extends Component {
     isModalOpen: false,
   };
 
-  componentDidMount() {
-    this.fetchData();
-    document.addEventListener('keydown', this.handleKeyDown);
-  }
-
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.handleKeyDown);
-  }
-
   async componentDidUpdate(prevProps, prevState) {
     if (
-      (prevState.query !== this.state.query ||
-        prevState.page !== this.state.page) &&
-      this.state.query.trim() !== ''
+      this.state.page !== prevState.page ||
+      this.state.query !== prevState.query
     ) {
-      this.setState({
-        loading: true,
-      });
-      try {
-        const images = await fetchData(this.state);
-        if (this.state.page === 1) {
-          this.setState({
-            totalHits: images.totalHits - 12,
-          });
-        }
-        this.setState(prevState => ({
-          images: [...prevState.images, ...images.hits],
-        }));
-      } catch (error) {
-        toast.error('Error! Something went wrong!');
-      } finally {
-        this.setState({
-          loading: false,
-        });
-      }
+      this.fetchData();
     }
   }
 
@@ -69,10 +40,15 @@ export class App extends Component {
       const images = await fetchData(query, page);
 
       if (page === 1) {
-        this.setState({ images });
+        this.setState(prevState => ({
+          images: [...prevState.images, ...images.hits],
+          totalHits: images.totalHits,
+          loadMore: page < Math.ceil(images.totalHits / 12),
+        }));
       } else {
         this.setState(prevState => ({
-          images: [...prevState.images, ...images],
+          images: [...prevState.images, ...images.hits],
+          loadMore: page < Math.ceil(images.totalHits / 12),
         }));
       }
     } catch (error) {
@@ -100,9 +76,16 @@ export class App extends Component {
   };
 
   handleLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
+    const { images, totalHits } = this.state;
+    if (images.length < totalHits) {
+      this.setState(
+        prevState => ({
+          page: prevState.page + 1,
+          images: [],
+        }),
+        this.fetchData
+      );
+    }
   };
 
   handleKeyDown = event => {
@@ -125,11 +108,12 @@ export class App extends Component {
         <SearchBar onSubmit={this.handleSearch} />
         <ImageGallery images={images} onImageClick={this.handleImageClick} />
         {loading && <Loader />}
-        {images.length > 0 && <Button onClick={this.handleLoadMore} />}
+        {images.length < this.state.totalHits && (
+          <Button onClick={this.handleLoadMore} />
+        )}
         {isModalOpen && (
           <Modal
             largeImageURL={currentImage}
-            onClose={this.handleCloseModal}
             onOverlayClick={this.handleOverlayClick}
           />
         )}
