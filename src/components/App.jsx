@@ -31,26 +31,16 @@ export class App extends Component {
   fetchData = async () => {
     try {
       const { query, page } = this.state;
-      if (query.trim() === '') {
-        return;
-      }
 
       this.setState({ loading: true });
 
       const images = await fetchData(query, page);
 
-      if (page === 1) {
-        this.setState(prevState => ({
-          images: [...prevState.images, ...images.hits],
-          totalHits: images.totalHits,
-          loadMore: page < Math.ceil(images.totalHits / 12),
-        }));
-      } else {
-        this.setState(prevState => ({
-          images: [...prevState.images, ...images.hits],
-          loadMore: page < Math.ceil(images.totalHits / 12),
-        }));
-      }
+      this.setState(prevState => ({
+        images: [...prevState.images, ...images.hits],
+        totalHits: images.totalHits,
+        loadMore: page < Math.ceil(images.totalHits / 12),
+      }));
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Error! Something went wrong!');
@@ -78,27 +68,13 @@ export class App extends Component {
   handleLoadMore = () => {
     const { images, totalHits } = this.state;
     if (images.length < totalHits) {
-      this.setState(
-        prevState => ({
-          page: prevState.page + 1,
-          images: [],
-        }),
-        this.fetchData
-      );
+      this.setState(prevState => ({
+        page: prevState.page + 1,
+      }));
     }
   };
 
-  handleKeyDown = event => {
-    if (event.key === 'Escape' && this.state.isModalOpen) {
-      this.handleCloseModal();
-    }
-  };
-
-  handleOverlayClick = event => {
-    if (event.target === event.currentTarget && this.state.isModalOpen) {
-      this.handleCloseModal();
-    }
-  };
+  // ...
 
   render() {
     const { images, loading, currentImage, isModalOpen } = this.state;
@@ -108,14 +84,11 @@ export class App extends Component {
         <SearchBar onSubmit={this.handleSearch} />
         <ImageGallery images={images} onImageClick={this.handleImageClick} />
         {loading && <Loader />}
-        {images.length < this.state.totalHits && (
+        {images.length > 0 && images.length < this.state.totalHits && (
           <Button onClick={this.handleLoadMore} />
         )}
         {isModalOpen && (
-          <Modal
-            largeImageURL={currentImage}
-            onOverlayClick={this.handleOverlayClick}
-          />
+          <Modal largeImageURL={currentImage} onClose={this.handleCloseModal} />
         )}
         <Toaster />
       </Wrapper>
