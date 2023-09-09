@@ -17,6 +17,7 @@ export class App extends Component {
     loading: false,
     currentImage: null,
     isModalOpen: false,
+    loadMore: false,
   };
 
   async componentDidUpdate(prevProps, prevState) {
@@ -66,29 +67,26 @@ export class App extends Component {
   };
 
   handleLoadMore = () => {
-    const { images, totalHits } = this.state;
-    if (images.length < totalHits) {
-      this.setState(prevState => ({
-        page: prevState.page + 1,
-      }));
-    }
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
   };
 
-  // ...
-
   render() {
-    const { images, loading, currentImage, isModalOpen } = this.state;
+    const { images, loading, currentImage, isModalOpen, loadMore } = this.state;
 
     return (
       <Wrapper className="App">
         <SearchBar onSubmit={this.handleSearch} />
         <ImageGallery images={images} onImageClick={this.handleImageClick} />
         {loading && <Loader />}
-        {images.length > 0 && images.length < this.state.totalHits && (
-          <Button onClick={this.handleLoadMore} />
-        )}
+        {loadMore && <Button onClick={this.handleLoadMore} />}
         {isModalOpen && (
-          <Modal largeImageURL={currentImage} onClose={this.handleCloseModal} />
+          <Modal
+            largeImageURL={currentImage}
+            onClose={this.handleCloseModal}
+            isOpen={isModalOpen}
+          />
         )}
         <Toaster />
       </Wrapper>
