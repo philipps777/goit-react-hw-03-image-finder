@@ -56,6 +56,11 @@ export class App extends Component {
   };
 
   handleSearch = newQuery => {
+    if (newQuery === this.state.query) {
+      toast.error('Already showing results for the same query.');
+      return;
+    }
+
     this.setState({
       query: newQuery,
       page: 1,
