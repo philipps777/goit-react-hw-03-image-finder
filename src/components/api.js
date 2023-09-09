@@ -11,11 +11,13 @@ export const fetchData = async (query, page) => {
 
     const queryWithoutSlash = query.slice(query.indexOf('/') + 1);
 
-    const response = await axios.get(
+    const { data } = await axios.get(
       `/?q=${queryWithoutSlash}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
     );
 
-    return response.data;
+    const { hits, totalHits } = data;
+
+    return { hits, totalHits };
   } catch (error) {
     throw error;
   }

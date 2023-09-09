@@ -36,10 +36,15 @@ export class App extends Component {
       this.setState({ loading: true });
 
       const images = await fetchData(query, page);
+      const { hits, totalHits } = images;
 
+      if (hits.length === 0) {
+        toast('No images found.');
+        return;
+      }
       this.setState(prevState => ({
         images: [...prevState.images, ...images.hits],
-        totalHits: images.totalHits,
+        totalHits,
         loadMore: page < Math.ceil(images.totalHits / 12),
       }));
     } catch (error) {
